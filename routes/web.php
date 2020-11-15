@@ -21,4 +21,12 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::resource('tenants', \App\Http\Controllers\TenantController::class);
+Route::group(['middleware' => 'auth'], function() {
+    Route::resource('tenants', \App\Http\Controllers\TenantController::class);
+    Route::get('setpassword', [\App\Http\Controllers\SetPasswordController::class, 'create'])->name('setpassword');
+    Route::post('setpassword', [\App\Http\Controllers\SetPasswordController::class, 'store'])->name('setpassword.store');
+
+
+});
+
+Route::get('invitation/{user}', [\App\Http\Controllers\TenantController::class, 'invitation'])->name('invitation');

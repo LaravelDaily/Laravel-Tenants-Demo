@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTenantRequest;
 use App\Http\Requests\UpdateTenantRequest;
 use App\Models\User;
+use App\Notifications\TenantInviteNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 class TenantController extends Controller
 {
@@ -39,7 +41,10 @@ class TenantController extends Controller
      */
     public function store(StoreTenantRequest $request)
     {
-        User::create($request->validated() + ['role_id' => 2, 'password' => 'secret']);
+        $user = User::create($request->validated()
+            + ['role_id' => 2, 'password' => 'secret']);
+        $url = URL::signedRoute('invitation', $user);
+        $user->notify(new TenantInviteNotification($url));
 
         return redirect()->route('tenants.index');
     }
@@ -80,5 +85,16 @@ class TenantController extends Controller
         $tenant->delete();
 
         return redirect()->route('tenants.index');
+    }
+
+    public function invitation(User $user)
+    {
+        if (!request()->hasValidSignature() || $user->password != 'secret') {
+            abort(401);
+        }
+
+        auth()->login($user);
+
+        return redirect()->route('home');
     }
 }

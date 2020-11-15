@@ -33,6 +33,7 @@ class UpdateTenantRequest extends FormRequest
             ],
             'domain' => [
                 'required',
+                'alpha_num',
                 Rule::unique('users')->ignore($this->tenant)
             ]
         ];
